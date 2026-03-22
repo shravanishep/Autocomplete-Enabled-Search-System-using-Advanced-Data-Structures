@@ -285,6 +285,40 @@
             font-size: 0.9rem;
             color: var(--muted);
             background: #f8fbff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .viewer-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mini-btn {
+            border: 1px solid #c7d6ea;
+            background: #fff;
+            color: #23405f;
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .mini-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .counter {
+            font-size: 0.8rem;
+            color: #4f6072;
+            min-width: 68px;
+            text-align: center;
         }
 
         .viewer-frame {
@@ -412,7 +446,14 @@
         </aside>
 
         <div id="viewer" class="viewer hidden">
-            <div id="viewerTitle" class="viewer-head">Viewer</div>
+            <div class="viewer-head">
+                <div id="viewerTitle">Viewer</div>
+                <div class="viewer-tools">
+                    <button id="prevMatchBtn" type="button" class="mini-btn" disabled>Prev</button>
+                    <div id="matchCounter" class="counter">0 / 0</div>
+                    <button id="nextMatchBtn" type="button" class="mini-btn" disabled>Next</button>
+                </div>
+            </div>
             <iframe id="viewerFrame" class="viewer-frame" title="Document Viewer"></iframe>
         </div>
     </div>
@@ -432,10 +473,15 @@ const viewerTitleEl = document.getElementById("viewerTitle");
 const uploadSurfaceEl = document.getElementById("uploadSurface");
 const browseBtnEl = document.getElementById("browseBtn");
 const selectedFileEl = document.getElementById("selectedFile");
+const prevMatchBtn = document.getElementById("prevMatchBtn");
+const nextMatchBtn = document.getElementById("nextMatchBtn");
+const matchCounterEl = document.getElementById("matchCounter");
 
 let uploaded = false;
 let currentOpenUrl = "";
 let suggestTimer = null;
+let matchIndex = -1;
+let matchCount = 0;
 
 function setStatus(text, isError = false) {
     statusEl.textContent = text;
@@ -503,6 +549,57 @@ function showViewer(url, title) {
     viewerFrameEl.src = url;
     viewerEl.classList.remove("hidden");
 }
+
+function setMatchNavState(count, index) {
+    matchCount = count;
+    matchIndex = index;
+    const shownIndex = count > 0 ? index + 1 : 0;
+    matchCounterEl.textContent = `${shownIndex} / ${count}`;
+    prevMatchBtn.disabled = count <= 1;
+    nextMatchBtn.disabled = count <= 1;
+}
+
+function focusMatchAt(index) {
+    const doc = viewerFrameEl.contentDocument;
+    if (!doc) {
+        setMatchNavState(0, -1);
+        return;
+    }
+
+    const marks = Array.from(doc.querySelectorAll("mark.match-hit"));
+    if (!marks.length) {
+        setMatchNavState(0, -1);
+        return;
+    }
+
+    let idx = index;
+    if (idx < 0) idx = marks.length - 1;
+    if (idx >= marks.length) idx = 0;
+
+    marks.forEach((m) => {
+        m.style.outline = "none";
+        m.style.boxShadow = "none";
+    });
+
+    const active = marks[idx];
+    active.style.outline = "2px solid #ef9b00";
+    active.style.boxShadow = "0 0 0 2px rgba(239, 155, 0, 0.2)";
+    active.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    setMatchNavState(marks.length, idx);
+}
+
+function moveMatch(delta) {
+    if (matchCount <= 0) return;
+    focusMatchAt(matchIndex + delta);
+}
+
+prevMatchBtn.addEventListener("click", () => moveMatch(-1));
+nextMatchBtn.addEventListener("click", () => moveMatch(1));
+
+viewerFrameEl.addEventListener("load", () => {
+    focusMatchAt(0);
+});
 
 openDocBtn.addEventListener("click", () => {
     if (!uploaded) return;

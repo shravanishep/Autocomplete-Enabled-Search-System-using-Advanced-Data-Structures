@@ -334,7 +334,7 @@ app.get("/document-view", (req, res) => {
     let htmlText = escapeHtml(text);
     if (query) {
         const re = new RegExp(escapeRegex(query), "ig");
-        htmlText = htmlText.replace(re, (m) => `<mark>${m}</mark>`);
+        htmlText = htmlText.replace(re, (m) => `<mark class="match-hit">${m}</mark>`);
     }
 
     const subtitle = truncated
