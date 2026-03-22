@@ -1,0 +1,3 @@
+Data Structures are important
+Algorithms are useful
+Machine Learning uses data
