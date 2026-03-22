@@ -35,7 +35,7 @@
         }
 
         .card {
-            width: min(860px, 100%);
+            width: min(1100px, 100%);
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 18px;
@@ -44,7 +44,7 @@
         }
 
         .head {
-            padding: 24px 24px 10px;
+            padding: 24px 24px 18px;
             border-bottom: 1px solid var(--border);
             background: linear-gradient(90deg, #f7fbff, #f7fffb);
         }
@@ -61,10 +61,57 @@
             font-size: 0.95rem;
         }
 
+        .top-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .chip {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #22507e;
+            background: #eaf4ff;
+            border: 1px solid #cfe3fa;
+            border-radius: 999px;
+            padding: 5px 10px;
+        }
+
         .body {
             padding: 24px;
             display: grid;
-            gap: 18px;
+            grid-template-columns: 1.45fr 0.95fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .main-panel,
+        .side-panel {
+            display: grid;
+            gap: 16px;
+        }
+
+        .panel-card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fff;
+            padding: 14px;
+        }
+
+        .panel-title {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+            color: #2e3d52;
+            font-weight: 700;
+        }
+
+        .meta-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #4f6072;
+            font-size: 0.9rem;
+            line-height: 1.45;
         }
 
         .row {
@@ -86,6 +133,70 @@
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             background: #fff;
+        }
+
+        .file-input-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .upload-surface {
+            border: 1.5px dashed #b9cde7;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #f9fcff 0%, #f4fbf7 100%);
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+
+        .upload-surface.drag-over {
+            border-color: #0f6cbd;
+            box-shadow: 0 0 0 3px rgba(15, 108, 189, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .upload-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .upload-copy {
+            font-size: 0.9rem;
+            color: #4c5e73;
+        }
+
+        .browse-btn {
+            border: 1px solid #c3d4ea;
+            background: #ffffff;
+            color: #1f3552;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .file-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 100%;
+            border: 1px solid #d6e3f2;
+            background: #ffffff;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.85rem;
+            color: #304863;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         input[type="file"]:focus,
@@ -165,6 +276,7 @@
             border-radius: 12px;
             overflow: hidden;
             background: #fff;
+            grid-column: 1 / -1;
         }
 
         .viewer-head {
@@ -199,10 +311,25 @@
         .suggestion-item:first-child { border-top: 0; }
         .suggestion-item:hover { background: #f5f9ff; }
 
+        .hint {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: -2px;
+        }
+
         @media (max-width: 640px) {
             .head, .body { padding: 16px; }
             h1 { font-size: 1.25rem; }
             button { width: 100%; }
+        }
+
+        @media (max-width: 920px) {
+            .body {
+                grid-template-columns: 1fr;
+            }
+            .viewer {
+                grid-column: auto;
+            }
         }
     </style>
 </head>
@@ -211,32 +338,78 @@
     <div class="head">
         <h1>Autocomplete Search System</h1>
         <p class="sub">Upload a text file, search a word, and instantly view suggestions and document hits.</p>
+        <div class="top-chips">
+            <span class="chip">Multi-format Upload</span>
+            <span class="chip">Trie Autocomplete</span>
+            <span class="chip">In-page Highlight Viewer</span>
+        </div>
     </div>
 
     <div class="body">
-        <form id="uploadForm" class="row">
-            <label for="fileInput">1) Upload Document</label>
-            <input type="file" id="fileInput" accept=".txt,.csv,.pdf,.doc,.docx" required>
-            <div class="actions">
-                <button type="submit" class="upload-btn">Upload File</button>
+        <section class="main-panel">
+            <form id="uploadForm" class="row panel-card">
+                <label for="fileInput">1) Upload Document</label>
+                <input type="file" id="fileInput" class="file-input-hidden" accept=".txt,.csv,.pdf,.doc,.docx" required>
+                <div id="uploadSurface" class="upload-surface" role="button" tabindex="0" aria-label="Choose file or drop file here">
+                    <div class="upload-top">
+                        <div class="upload-copy">Drop your file here or click Browse to select</div>
+                        <button id="browseBtn" type="button" class="browse-btn">Browse Files</button>
+                    </div>
+                    <div id="selectedFile" class="file-pill">No file selected</div>
+                </div>
+                <div class="hint">Supported: txt, csv, pdf, doc, docx (up to 50 MB)</div>
+                <div class="actions">
+                    <button type="submit" class="upload-btn">Upload File</button>
+                </div>
+            </form>
+
+            <div class="row panel-card">
+                <label for="query">2) Search Word</label>
+                <input type="text" id="query" placeholder="Type a word like data or machine">
+                <div id="suggestions" class="suggestions hidden"></div>
+                <div class="actions">
+                    <button id="searchBtn" class="search-btn" onclick="search()" disabled>Search</button>
+                </div>
             </div>
-        </form>
 
-        <div class="row">
-            <label for="query">2) Search Word</label>
-            <input type="text" id="query" placeholder="Type a word like data or machine">
-            <div id="suggestions" class="suggestions hidden"></div>
-            <div class="actions">
-                <button id="searchBtn" class="search-btn" onclick="search()" disabled>Search</button>
+            <div class="panel-card">
+                <div id="status" class="status">Waiting for file upload.</div>
+                <pre id="output" style="margin-top:12px;">Upload txt/csv/pdf/doc/docx and search a word.</pre>
+
+                <div id="docActions" class="actions hidden" style="margin-top:12px;">
+                    <button id="openDocBtn" type="button" class="link-btn">Show Document Below</button>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <div id="status" class="status">Waiting for file upload.</div>
-        <pre id="output">Upload txt/csv/pdf/doc/docx and search a word.</pre>
+        <aside class="side-panel">
+            <div class="panel-card">
+                <h3 class="panel-title">How To Use</h3>
+                <ol class="meta-list">
+                    <li>Upload your document.</li>
+                    <li>Start typing to get recommendations.</li>
+                    <li>Search and inspect highlighted matches below.</li>
+                </ol>
+            </div>
 
-        <div id="docActions" class="actions hidden">
-            <button id="openDocBtn" type="button" class="link-btn">Show Document Below</button>
-        </div>
+            <div class="panel-card">
+                <h3 class="panel-title">What You Get</h3>
+                <ol class="meta-list">
+                    <li>Fast prefix suggestions using Trie indexing.</li>
+                    <li>Line-aware document search with match counts.</li>
+                    <li>Single-page viewer for clean reading and verification.</li>
+                </ol>
+            </div>
+
+            <div class="panel-card">
+                <h3 class="panel-title">Tips</h3>
+                <ol class="meta-list">
+                    <li>Use 2+ letters to get better suggestions.</li>
+                    <li>For large files, search focused keywords first.</li>
+                    <li>Upload a new file to rebuild the index instantly.</li>
+                </ol>
+            </div>
+        </aside>
 
         <div id="viewer" class="viewer hidden">
             <div id="viewerTitle" class="viewer-head">Viewer</div>
@@ -256,6 +429,9 @@ const openDocBtn = document.getElementById("openDocBtn");
 const viewerEl = document.getElementById("viewer");
 const viewerFrameEl = document.getElementById("viewerFrame");
 const viewerTitleEl = document.getElementById("viewerTitle");
+const uploadSurfaceEl = document.getElementById("uploadSurface");
+const browseBtnEl = document.getElementById("browseBtn");
+const selectedFileEl = document.getElementById("selectedFile");
 
 let uploaded = false;
 let currentOpenUrl = "";
@@ -278,6 +454,15 @@ function escapeHtml(text) {
 function hideSuggestions() {
     suggestionsEl.classList.add("hidden");
     suggestionsEl.innerHTML = "";
+}
+
+function renderSelectedFile(file) {
+    if (!file) {
+        selectedFileEl.textContent = "No file selected";
+        return;
+    }
+    const sizeKb = Math.max(1, Math.round(file.size / 1024));
+    selectedFileEl.textContent = `${file.name} (${sizeKb} KB)`;
 }
 
 function renderSuggestions(items) {
@@ -326,6 +511,43 @@ openDocBtn.addEventListener("click", () => {
     showViewer(url, "Document View (inline)");
 });
 
+browseBtnEl.addEventListener("click", () => {
+    fileInput.click();
+});
+
+uploadSurfaceEl.addEventListener("click", (e) => {
+    if (e.target.id !== "browseBtn") fileInput.click();
+});
+
+uploadSurfaceEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fileInput.click();
+    }
+});
+
+fileInput.addEventListener("change", () => {
+    renderSelectedFile(fileInput.files[0]);
+});
+
+uploadSurfaceEl.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadSurfaceEl.classList.add("drag-over");
+});
+
+uploadSurfaceEl.addEventListener("dragleave", () => {
+    uploadSurfaceEl.classList.remove("drag-over");
+});
+
+uploadSurfaceEl.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadSurfaceEl.classList.remove("drag-over");
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (!files || !files.length) return;
+    fileInput.files = files;
+    renderSelectedFile(fileInput.files[0]);
+});
+
 document.getElementById("uploadForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const input = document.getElementById("fileInput");
@@ -358,6 +580,7 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
 
         setStatus(data.message || "Uploaded", false);
         outputEl.textContent = `${data.file.name} uploaded. Search to find exact word locations.`;
+        renderSelectedFile(fileInput.files[0]);
         hideSuggestions();
         showViewer("/document-view", "Document View (inline)");
     } catch (_err) {
