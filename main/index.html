@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Search UI</title>
+    <style>
+        :root {
+            --bg1: #f2f7ff;
+            --bg2: #e8fff4;
+            --panel: #ffffff;
+            --text: #1c2430;
+            --muted: #5a6878;
+            --brand: #0f6cbd;
+            --brand-2: #0e8f67;
+            --danger: #b42318;
+            --border: #d6dfeb;
+            --shadow: 0 20px 50px rgba(16, 37, 68, 0.12);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(1000px 500px at -10% -10%, #dcefff 0%, transparent 65%),
+                radial-gradient(1000px 500px at 120% 110%, #d9f8ea 0%, transparent 60%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: min(860px, 100%);
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .head {
+            padding: 24px 24px 10px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(90deg, #f7fbff, #f7fffb);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.55rem;
+            letter-spacing: 0.2px;
+        }
+
+        .sub {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .body {
+            padding: 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .row {
+            display: grid;
+            gap: 10px;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        input[type="file"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font: inherit;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #fff;
+        }
+
+        input[type="file"]:focus,
+        input[type="text"]:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(15, 108, 189, 0.16);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .link-btn {
+            background: #1f2f46;
+            color: #fff;
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 16px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.92rem;
+            display: inline-block;
+        }
+
+        .link-btn:hover { opacity: 0.92; }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 16px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform 0.12s ease, opacity 0.2s ease;
+        }
+
+        button:active { transform: translateY(1px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .upload-btn { background: linear-gradient(90deg, var(--brand), #1f85d6); }
+        .search-btn { background: linear-gradient(90deg, var(--brand-2), #20ad7c); }
+
+        .status {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #f8fbff;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .status.error {
+            color: var(--danger);
+            border-color: #f3c0bb;
+            background: #fff7f6;
+        }
+
+        pre {
+            margin: 0;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #f8fbff;
+            font-family: Consolas, "Courier New", monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 120px;
+        }
+
+        .hidden { display: none; }
+
+        .viewer {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .viewer-head {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--muted);
+            background: #f8fbff;
+        }
+
+        .viewer-frame {
+            width: 100%;
+            height: 420px;
+            border: 0;
+            display: block;
+        }
+
+        .suggestions {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-top: 1px solid #eef2f8;
+            font-size: 0.92rem;
+        }
+
+        .suggestion-item:first-child { border-top: 0; }
+        .suggestion-item:hover { background: #f5f9ff; }
+
+        @media (max-width: 640px) {
+            .head, .body { padding: 16px; }
+            h1 { font-size: 1.25rem; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<main class="card">
+    <div class="head">
+        <h1>Autocomplete Search System</h1>
+        <p class="sub">Upload a text file, search a word, and instantly view suggestions and document hits.</p>
+    </div>
+
+    <div class="body">
+        <form id="uploadForm" class="row">
+            <label for="fileInput">1) Upload Document</label>
+            <input type="file" id="fileInput" accept=".txt,.csv,.pdf,.doc,.docx" required>
+            <div class="actions">
+                <button type="submit" class="upload-btn">Upload File</button>
+            </div>
+        </form>
+
+        <div class="row">
+            <label for="query">2) Search Word</label>
+            <input type="text" id="query" placeholder="Type a word like data or machine">
+            <div id="suggestions" class="suggestions hidden"></div>
+            <div class="actions">
+                <button id="searchBtn" class="search-btn" onclick="search()" disabled>Search</button>
+            </div>
+        </div>
+
+        <div id="status" class="status">Waiting for file upload.</div>
+        <pre id="output">Upload txt/csv/pdf/doc/docx and search a word.</pre>
+
+        <div id="docActions" class="actions hidden">
+            <button id="openDocBtn" type="button" class="link-btn">Show Document Below</button>
+        </div>
+
+        <div id="viewer" class="viewer hidden">
+            <div id="viewerTitle" class="viewer-head">Viewer</div>
+            <iframe id="viewerFrame" class="viewer-frame" title="Document Viewer"></iframe>
+        </div>
+    </div>
+</main>
+
+<script>
+const outputEl = document.getElementById("output");
+const statusEl = document.getElementById("status");
+const searchBtn = document.getElementById("searchBtn");
+const queryEl = document.getElementById("query");
+const suggestionsEl = document.getElementById("suggestions");
+const docActionsEl = document.getElementById("docActions");
+const openDocBtn = document.getElementById("openDocBtn");
+const viewerEl = document.getElementById("viewer");
+const viewerFrameEl = document.getElementById("viewerFrame");
+const viewerTitleEl = document.getElementById("viewerTitle");
+
+let uploaded = false;
+let currentOpenUrl = "";
+let suggestTimer = null;
+
+function setStatus(text, isError = false) {
+    statusEl.textContent = text;
+    statusEl.className = isError ? "status error" : "status";
+}
+
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function hideSuggestions() {
+    suggestionsEl.classList.add("hidden");
+    suggestionsEl.innerHTML = "";
+}
+
+function renderSuggestions(items) {
+    if (!items || !items.length) {
+        hideSuggestions();
+        return;
+    }
+
+    suggestionsEl.innerHTML = items.map((s) => `<div class="suggestion-item" data-word="${s}">${escapeHtml(s)}</div>`).join("");
+    suggestionsEl.classList.remove("hidden");
+
+    suggestionsEl.querySelectorAll(".suggestion-item").forEach((el) => {
+        el.addEventListener("click", () => {
+            queryEl.value = el.getAttribute("data-word") || "";
+            hideSuggestions();
+            search();
+        });
+    });
+}
+
+async function fetchSuggestions(prefix) {
+    if (!uploaded || prefix.trim().length < 2) {
+        hideSuggestions();
+        return;
+    }
+
+    try {
+        const res = await fetch(`/suggest?q=${encodeURIComponent(prefix)}`);
+        const data = await res.json();
+        renderSuggestions(data.suggestions || []);
+    } catch (_err) {
+        hideSuggestions();
+    }
+}
+
+function showViewer(url, title) {
+    viewerTitleEl.textContent = title;
+    viewerFrameEl.src = url;
+    viewerEl.classList.remove("hidden");
+}
+
+openDocBtn.addEventListener("click", () => {
+    if (!uploaded) return;
+    const q = encodeURIComponent(queryEl.value.trim());
+    const url = `/document-view${q ? `?q=${q}` : ""}`;
+    showViewer(url, "Document View (inline)");
+});
+
+document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const input = document.getElementById("fileInput");
+
+    if (!input.files.length) {
+        setStatus("Select a file first.", true);
+        return;
+    }
+
+    setStatus("Uploading file...");
+
+    const formData = new FormData();
+    formData.append("file", input.files[0]);
+
+    try {
+        const res = await fetch("/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        uploaded = res.ok;
+        searchBtn.disabled = !uploaded;
+
+        if (!uploaded) {
+            setStatus(data.message || "Upload failed", true);
+            outputEl.textContent = "Upload failed.";
+            docActionsEl.classList.add("hidden");
+            return;
+        }
+
+        currentOpenUrl = data.file.openUrl;
+        docActionsEl.classList.remove("hidden");
+
+        setStatus(data.message || "Uploaded", false);
+        outputEl.textContent = `${data.file.name} uploaded. Search to find exact word locations.`;
+        hideSuggestions();
+        showViewer("/document-view", "Document View (inline)");
+    } catch (_err) {
+        uploaded = false;
+        searchBtn.disabled = true;
+        setStatus("Server not reachable.", true);
+    }
+});
+
+queryEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        hideSuggestions();
+        search();
+    }
+});
+
+queryEl.addEventListener("input", () => {
+    if (suggestTimer) clearTimeout(suggestTimer);
+    const value = queryEl.value;
+    suggestTimer = setTimeout(() => fetchSuggestions(value), 150);
+});
+
+async function search() {
+    const query = queryEl.value.trim();
+
+    if (!uploaded) {
+        setStatus("Upload a file first.", true);
+        return;
+    }
+    if (!query) {
+        setStatus("Enter a word to search.", true);
+        return;
+    }
+
+    setStatus("Searching...");
+
+    try {
+        const res = await fetch("/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            setStatus(data.message || "Search failed", true);
+            outputEl.textContent = "Search failed.";
+            return;
+        }
+
+        outputEl.textContent = `Total matches: ${data.totalMatches} | Showing: ${data.shownMatches}`;
+        currentOpenUrl = data.file.openUrl || currentOpenUrl;
+        docActionsEl.classList.remove("hidden");
+        hideSuggestions();
+        showViewer(`/document-view?q=${encodeURIComponent(query)}`, "Document View (inline, highlighted)");
+        setStatus("Search completed.");
+    } catch (_err) {
+        setStatus("Server not reachable.", true);
+    }
+}
+</script>
+</body>
+</html>

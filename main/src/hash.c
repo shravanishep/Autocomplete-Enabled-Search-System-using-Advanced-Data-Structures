@@ -5,14 +5,14 @@
 
 Entry* table[TABLE_SIZE] = {NULL};
 
-int hashFunc(char *word) {
+int hashFunc(const char *word) {
     int sum = 0;
     for (int i = 0; word[i]; i++)
         sum += word[i];
     return sum % TABLE_SIZE;
 }
 
-void insertHash(char *word, int docID) {
+void insertHash(const char *word, int docID) {
     int idx = hashFunc(word);
     Entry* temp = table[idx];
 
@@ -49,7 +49,7 @@ void insertHash(char *word, int docID) {
     table[idx] = e;
 }
 
-Node* searchHash(char *word) {
+Node* searchHash(const char *word) {
     int idx = hashFunc(word);
     Entry* temp = table[idx];
 

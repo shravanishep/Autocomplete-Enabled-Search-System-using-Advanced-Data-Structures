@@ -1,0 +1,18 @@
+{
+  "name": "autocomplete-enabled-search-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-based upload and search UI powered by C data structures",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mammoth": "^1.8.0",
+    "multer": "^2.0.0",
+    "pdf-parse": "^1.1.1",
+    "word-extractor": "^1.0.4"
+  }
+}

@@ -1,0 +1,5 @@
+main/node_modules/
+main/uploads/
+main/search_cli.exe
+main/search.exe
+*.log

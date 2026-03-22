@@ -15,7 +15,7 @@ typedef struct Entry {
     struct Entry* next;
 } Entry;
 
-void insertHash(char *word, int docID);
-Node* searchHash(char *word);
+void insertHash(const char *word, int docID);
+Node* searchHash(const char *word);
 
 #endif

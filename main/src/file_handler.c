@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "../include/tokenizer.h"
 
-void readFile(char *name){
+void readFile(const char *name){
     FILE *fp=fopen(name,"r");
     if(!fp){ printf("File error\n"); return;}
 

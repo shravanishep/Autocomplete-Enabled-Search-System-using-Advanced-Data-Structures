@@ -6,7 +6,7 @@ typedef struct TrieNode {
     int end;
 } TrieNode;
 
-void insertTrie(char *word);
-void searchPrefix(char *prefix);
+void insertTrie(const char *word);
+void searchPrefix(const char *prefix);
 
 #endif

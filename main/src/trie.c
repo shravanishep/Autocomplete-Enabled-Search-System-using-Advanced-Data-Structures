@@ -12,7 +12,7 @@ TrieNode* create() {
     return n;
 }
 
-void insertTrie(char *w) {
+void insertTrie(const char *w) {
     if (!root) root = create();
     TrieNode* cur = root;
 
@@ -38,7 +38,12 @@ void print(TrieNode* node, char *buf, int lvl) {
     }
 }
 
-void searchPrefix(char *p) {
+void searchPrefix(const char *p) {
+    if (!root) {
+        printf("No suggestions\n");
+        return;
+    }
+
     TrieNode* cur = root;
     for (int i = 0; p[i]; i++) {
         int idx = p[i]-'a';
@@ -49,7 +54,8 @@ void searchPrefix(char *p) {
         cur = cur->child[idx];
     }
     char buf[100];
-    strcpy(buf,p);
+    strncpy(buf,p,sizeof(buf)-1);
+    buf[sizeof(buf)-1] = '\0';
     printf("Suggestions:\n");
     print(cur,buf,strlen(p));
 }
